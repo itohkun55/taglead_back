@@ -1,4 +1,4 @@
-asgiref @ file:///tmp/build/80754af9/asgiref_1625643473416/work
+asgiref
 astroid==2.5
 certifi==2021.5.30
 cffi==1.14.6
@@ -8,7 +8,7 @@ cryptography==3.4.8
 defusedxml==0.7.1
 Deprecated==1.2.13
 diff-match-patch==20200713
-Django @ file:///tmp/build/80754af9/django_1625585912945/work
+Django
 django-cors-headers==3.8.0
 django-filter==2.4.0
 django-import-export==2.5.0
