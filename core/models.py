@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.base import Model
 from django.db.models.deletion import CASCADE, SET_NULL
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -35,7 +36,7 @@ class TagMain(models.Model):
     #重要度	
     numTagRank= models.IntegerField(verbose_name="タグランク")
     #登録日時	
-    datePublish=models.DateTimeField(verbose_name="登録日")
+    datePublish=models.DateTimeField(verbose_name="登録日",auto_now_add=True)
     #施設ID	
     facilityId=models.ForeignKey(Facility,verbose_name="所属施設",on_delete=models.CASCADE)
     #数値タグで使用した際の接尾辞
@@ -60,22 +61,23 @@ class OperateUser(models.Model):
     strName=models.CharField(verbose_name="ユーザー名",max_length=50)
     #施設ID
     keyFacility=models.ForeignKey(Facility, verbose_name="施設", on_delete=models.CASCADE)
-    #パスワード	
-    password=models.CharField(verbose_name="パスワード", max_length=50)
+    #パスワード	認証をGoogleでやることにしたので削除
+    #password=models.CharField(verbose_name="パスワード", max_length=50)
     #登録日時	
     datePublish=models.DateTimeField(verbose_name="登録日時")
     #ユーザーのタグ
     tagId=models.ForeignKey(TagMain,on_delete=models.CASCADE,default=1,related_name="main")
     #場所タグ　利用者タグが利用されたら同じ場所タグを持つ勤務者の一覧表示に表示される
-    keyTagPlace=models.ForeignKey(TagMain,verbose_name="所属タグ",on_delete=models.SET_NULL,null=True,related_name="place")
+    # いたずらに使用を複雑化させるため削除
+    # keyTagPlace=models.ForeignKey(TagMain,verbose_name="所属タグ",on_delete=models.SET_NULL,null=True,related_name="place")
 
     #ユーザーのデータよりタグ名が優越するので、ユーザー追加の際はタグを新規に作ってから行うよう実装する
     #ユーザーの状態　退職などに対応
     numStatus=models.IntegerField(verbose_name="ステータス",default=1)
+    #ユーザーのランク　各種権限に利用する
+    numRank=models.IntegerField(verbose_name="ランク",default=1)
 
-    #　本来は別テーブルで管理すべきなのは重々承知だが、結局書き方がわからない割には優先順位がつけられず
-    #strFavoriteArray=models.CharField(verbose_name="お気に入り",  max_length=500,blank=True)
-
+    keyUser=models.ForeignKey(User,verbose_name="利用ユーザ",on_delete=SET_NULL, null=True)
 
     class Meta:
         verbose_name='実施者'
@@ -146,6 +148,9 @@ class MemoMain(models.Model):
     keyFacility=models.ForeignKey(Facility,verbose_name="施設",on_delete=models.CASCADE,default=1)
 
     #strHasReadChecked=models.CharField(verbose_name="既読者",default="",max_length=100)
+    boolHasModified=models.BooleanField(verbose_name="修正済みフラグ",blank=True,default=False)
+    boolHasDeleted=models.BooleanField(verbose_name="削除済みフラグ",default=False)
+
 
 
     class Meta:
@@ -154,6 +159,17 @@ class MemoMain(models.Model):
 
     def __str__(self):
         return self.strMainText[:20]
+
+#MemoMainに記録された内容のバックアップ。　修正・削除があった時のみ記録する
+class MemoMainBackup (models.Model):
+    keyMemoId=models.IntegerField(verbose_name="メモID")
+
+    dateUpdate=models.DateField(verbose_name="更新日時")
+
+    typeBackUpCase=models.CharField(verbose_name="バックアップ種類",default="none", max_length=20)
+
+    charBackUpText=models.TextField("元の文")
+
 
 
 class TagSearchIndex(models.Model):
@@ -174,10 +190,12 @@ class TagSearchIndex(models.Model):
 class TagInFormatedMemo(models.Model):
 
     keyTagMain=models.ForeignKey(TagMain,verbose_name="タグ",on_delete=models.CASCADE)
+    keyFacility=models.ForeignKey(Facility,verbose_name="利用施設",default=1, on_delete=models.CASCADE)
     numTagPhase=models.IntegerField(verbose_name="フェーズ",default=-1)
     strGroup=models.CharField(verbose_name="グループ",max_length=50)
     strShow=models.CharField(verbose_name="表示用数列",max_length=100,blank=True)
     strHide=models.CharField(verbose_name="消滅用数列",max_length=100,blank=True)
+
 
 
     class Meta:

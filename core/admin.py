@@ -16,7 +16,8 @@ from .models import (
     TagInFormatedMemo,
     GuestMain,
     IsUserFavoriteInMemo,
-    NoticeMain
+    NoticeMain,
+    MemoMainBackup
     )
 
 class TagMainModelResource(ModelResource):
@@ -41,7 +42,7 @@ class TagMainAdmin(ImportMixin,admin.ModelAdmin):
     formats=[base_formats.CSV]
 
 class OperateUserAdmin(ImportMixin,admin.ModelAdmin):
-    list_display=('id','strName', 'keyFacility', 'password', 'datePublish', 'tagId')
+    list_display=('id','strName', 'keyFacility', 'datePublish', 'tagId')
     resource_class=OperateUserModelResources
     formats=[base_formats.CSV]
 
@@ -72,6 +73,9 @@ class GuestMainAdmin(admin.ModelAdmin):
 class FavoriteCheckAdmin(admin.ModelAdmin):
     list_display=("keyMemoMain","keyOperateUser")
 
+class BackUpAdmin (admin.ModelAdmin):
+    list_display=("keyMemoId","dateUpdate","typeBackUpCase","charBackUpText")
+
 
 admin.site.register(MemoMain,MemoMainAdmin)
 admin.site.register(TagMain,TagMainAdmin)
@@ -83,3 +87,4 @@ admin.site.register(TagInFormatedMemo,TagInformatedMemoAdmin)
 admin.site.register(GuestMain,GuestMainAdmin)
 admin.site.register(IsUserFavoriteInMemo,FavoriteCheckAdmin)
 admin.site.register(NoticeMain)
+admin.site.register( MemoMainBackup,BackUpAdmin)

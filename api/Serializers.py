@@ -14,7 +14,7 @@ class TagLeadUserSerializer(serializers.HyperlinkedModelSerializer):
 class OperatorUserSerializer(serializers.ModelSerializer):
     class Meta:
         model=OperateUser
-        fields=['id','strName','password']
+        fields=['id','strName','numRank']
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -28,7 +28,7 @@ class MemoMainSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=MemoMain
-        fields=('id','strTaglist','strMainText','numMemotype','keySender','listReceiver','datePublish','dateRegist','keyFollowId','keyParent')
+        fields=('id','strTaglist','strMainText','numMemotype','keySender','listReceiver','datePublish','dateRegist','keyFollowId','keyReplyBase','keyParent','boolHasModified',"boolHasDeleted")
 
 #メモ入力用シリアライザ　転送入力も同じものを使う
 class MemoMainInputSerializer(serializers.ModelSerializer):
@@ -36,6 +36,15 @@ class MemoMainInputSerializer(serializers.ModelSerializer):
     class Meta:
         model=MemoMain
         fields=('strTaglist','strMainText','numMemotype','keySender','datePublish','dateRegist')
+
+#メモ修正・削除用シリアライザ　転送入力も同じものを使う
+class MemoMainModifySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=MemoMain
+        fields=('pk','strTaglist','strMainText','numMemotype','dateRegist')
+
+
 
 #メモ入力用シリアライザ　転送入力も同じものを使う
 class FollowInputSerializer(serializers.ModelSerializer):
@@ -50,7 +59,7 @@ class FollowInputSerializer(serializers.ModelSerializer):
 class TagMainSerializer(serializers.ModelSerializer):
     class Meta:
         model=TagMain
-        fields=('id','strTagName','numTagType')
+        fields=('id','strTagName','numTagType','numTagRank')
 
 class TagInFormatedMemoSerializer(serializers.ModelSerializer):
     keyTagMain=TagMainSerializer(many=False)

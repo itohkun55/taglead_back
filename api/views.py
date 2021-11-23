@@ -1,15 +1,24 @@
+from api.SendMessageLibrary import (
+    FORMATTED_INSERT_MEMO, 
+    HAS_NO_ACCOUNT, 
+    HAS_NO_RESULT,
+    HAS_NO_PERMISSION,
+    INSERT_VARIDATION_ERROR,
+    HAS_NO_VALID_USER,
+    HAS_NO_DATA
+    )
 from django.shortcuts import render
-from rest_framework import routers,viewsets
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import views
-from rest_framework import authentication, permissions
+#from rest_framework import authentication, permissions
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+#from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from datetime import date, datetime as dt
+from dateutil.relativedelta import relativedelta
 
-
-#from drf_social_oauth2.authentication import SocialAuthentication
-#from oauth2_provider.contrib.rest_framework import OAuth2Authentication
+from drf_social_oauth2.authentication import SocialAuthentication
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 
 from django.contrib.auth.models import User
 from datetime import datetime,timedelta,timezone
@@ -35,8 +44,10 @@ from core.models import (
     UserTagConfig,
     IsUserReadInMemo,
     IsUserFavoriteInMemo,
-    NoticeMain) 
+    NoticeMain,
+    MemoMainBackup) 
 from .ReplacedNumberLibrary import (
+    NUM_COMMON_TAG_FACILITY,
     NUM_TAGTYPE_MEMBER,
     NUM_TAG_STATUS_MAINLIST,
     NUM_TAG_STATUS_SUBLIST,
@@ -44,20 +55,9 @@ from .ReplacedNumberLibrary import (
     NUM_MEMO_TYPE_FORMATTED)
 
 
+
 #TagSearchで一度に検索をかける数
 SEARCH_COUNT=300
-
-# class TagLeadUserViewSet(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = TagLeadUserSerializer
-
-#     def get_queryset(self):
-#         facId=self.request.GEY.get("facId")
-#         userId=self.request.GEY.get("userId")
-
-#         return OperateUser.objects.filter(pk=userId)
-    
-
 
 CHANGE_MAIN_VIEW="main";
 CHANGE_TAG_VIEW="tag";
@@ -65,58 +65,63 @@ CHANGE_REPLY_VIEW="reply";
 
 
 class TagLeadBaseView(views.APIView):
+    #認証　このクラスのサブクラスは全てここで認証済み
+    authentication_classes=[OAuth2Authentication,SocialAuthentication]
+    permission_classes = [IsAuthenticated,  ]
+
 
     def setRequestParams(self,request):
-
-        # if  request.user.isauthenticated:
-        #     print("AUthenticated")
-
-        # else:
-        #     print("none")
-
+        self.errorFlg=False
         gets=request.GET
         
         self.tagArray= gets.get("tagArray",default="").split(',')
-        self.userId=gets.get("userId",default="-1")
+        #空文字対応
+        if self.tagArray==['']:
+            self.tagArray=[]
 
-        self.fromId= int(gets.get("fromId",default="-1"))
-        self.facId=gets.get("facId",default="-1")
+        self.settags= gets.get("settags",default="").split(',')
+        #空文字対応
+        if self.settags==['']:
+            self.settags=[]
+        
+        self.fromDay=gets.get("fromDay",default="")
         self.mainText=gets.get("mainText",default="")
         self.datePublish=gets.get("datePublish",default="")
         self.dateRegist=gets.get("dateRegist",default="")
-        self.followId=gets.get("followId")
+        self.followId=int(gets.get("followId",default="-1"))
 
         self.memoId=gets.get("memoId",default="-1")
         self.viewname=gets.get("viewname",default="-1")
+        self.userId=-1
+        self.facId=-1
 
+        try:
+            targetUser=OperateUser.objects.get(keyUser=request.user)
+            self.userId=targetUser.pk
+            self.userRank=targetUser.numRank
 
+            self.facId=targetUser.keyFacility.pk
 
-
-#自由入力のタグリスト
-class InitialDataListView(TagLeadBaseView):
-#class TagMainDataListView(TagLeadTemplateView):
-
-    #permission_classes = (permissions.AllowAny,)
-   
-    #permission_classes = [IsAuthenticated,  ]
-    def get(self,request):
-
-
-        auth_token = request.META.get('HTTP_AUTHORIZATION')
-
-        print(auth_token)
+        except OperateUser.DoesNotExist:
+            print("初期認証エラー")
+            self.errorFlg=True
+            self.errorMsg=HAS_NO_ACCOUNT
+            self.errorCode=1
 
         
-        if  request.user.is_authenticated:
-            print("AUthenticated")
 
-        else:
-            print("none")
+#初期情報のロード
+class InitialDataListView(TagLeadBaseView):
 
+    def get(self,request):
+        
         self.setRequestParams(request)
 
         res=self.getTagList()
-        #print(res['main'])
+        print("userRank",self.userRank)
+        
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
 
 
         return Response({
@@ -125,40 +130,30 @@ class InitialDataListView(TagLeadBaseView):
             "sub":UserTagConfigSerializer(res['sub'],many=True).data,
             "all":TagMainSerializer(res['all'],many=True).data,
             "formatted":TagInFormatedMemoSerializer(res["formatted"],many=True).data,
-            "noticeCount":res["noticeCount"]
+            "noticeCount":res["noticeCount"],
+            "userId":self.userId,
+            "userRank":self.userRank
             })
 
 
     def getTagList(self):
+        useFac=[NUM_COMMON_TAG_FACILITY,self.facId]
+
         user_list=OperateUser.objects.filter(keyFacility__id=self.facId)
-        useTag=TagMain.objects.filter(facilityId__id=self.facId)
+        useTag=TagMain.objects.filter(facilityId__id__in=useFac)
         mainTags=UserTagConfig.objects.filter(numTagStatus=NUM_TAG_STATUS_MAINLIST,keyOperateUser__id=self.userId, keyTag__in=useTag)
         subTags=UserTagConfig.objects.filter(numTagStatus=NUM_TAG_STATUS_SUBLIST,keyOperateUser__id=self.userId, keyTag__in=useTag)
-        formatted=TagInFormatedMemo.objects.filter(keyTagMain__facilityId__id=self.facId)
-        noticeCount=NoticeMain.objects.filter(keyOperateUser__id=self.userId,boolHasRead=False).count()
+        formatted=TagInFormatedMemo.objects.filter(keyFacility=self.facId)
+        noticeCount=NoticeMain.objects.filter(keyOperateUser__id=self.userId,boolHasRead=False).count()        
 
         return {"user_list":user_list,"main":mainTags,"sub":subTags,"all":useTag,"formatted":formatted,"noticeCount":noticeCount}
-
-
-class TestAppendValueView(generics.ListAPIView):
-    queryset=MemoMain.objects.all()
-    serializer_class=MemoMainSerializer
-
-    def get_queryset(self):
-        dec=MemoMain.objects.all()
-
-        # for d in dec:
-        #     d["append"]="sss"
-
-
-        return dec
-
 
 
 
 class TagLeadTemplateView(TagLeadBaseView):
 
-    def makeResultSet(self,res,flg):
+    #メモの検索結果を送信する際のまとめ関数
+    def makeResultSet(self,res,flg=True):
 
         resset=[]
         readSet=[]
@@ -168,77 +163,73 @@ class TagLeadTemplateView(TagLeadBaseView):
             resset=MemoMainSerializer(res,many=True).data
             readSet=IsUserReadInMemo.objects.filter(keyMemoMain__in=res,keyOperateUser__pk=self.userId).values_list("keyMemoMain",flat=True)
             favoriteSet=IsUserFavoriteInMemo.objects.filter(keyMemoMain__in=res,keyOperateUser__pk=self.userId).values_list("keyMemoMain",flat=True)
-        
+        # print(" リリース直前 ",flg)
+        return {"timeline":resset,"read":readSet, "fav":favoriteSet, "endflg":flg}
 
-        return {"timeline":resset,"read":readSet, "fav":favoriteSet, "end":flg,"fromId":self.fromId}
-
-
+    #一覧用検索
     def getMainListResult(self):
         
         resultmemos=[]
         endFlg=False
 
-        firstFlg=True
-        if self.fromId!=-1:
-            firstFlg=False
-
         utc=pytz.UTC
 
-        limitDate=utc.localize(datetime.utcnow())
+        #日にち指定がなかった時は1年後までを検索範囲にする
+        if self.fromDay=="-1":
+            
+            self.fromDay=pytz.UTC.localize(datetime.utcnow())+relativedelta(years=+1)
+            limitDate = utc.localize(datetime.utcnow())
+        else:
 
-        last= utc.localize(datetime.utcnow()) 
+            limitDate = utc.localize(dt.strptime(self.fromDay,'%Y-%m-%dT%H:%M:%S.%fZ'))
+        last= limitDate
 
         tf=UserTagConfig.objects.filter(keyOperateUser__pk=self.userId,boolIsShownInList=True)
         tf_list=tf.values_list("keyTag",flat=True)
 
-        #print(tf_list)
-
-
-
         #最終日時を先に取る
         for tag in tf_list:
-            
-                th= TagSearchIndex.objects.filter(keyTagMain__id=tag,keyFacility= self.facId).order_by('-dateRegist')
+                #            
+                th= TagSearchIndex.objects.filter(keyTagMain__id=tag,keyFacility__pk= self.facId).order_by('-dateRegist')
                 if len(th)==0:
+                    #一覧検索で対象タグが存在しない　→　スルー
                     continue
-                
-                #print(th)
                 th_last=th.last().dateRegist
-                
+                #該当タグがある中で一番古いものを最古にして、ここまでは検索をさかのぼる指針とする
                 if last>th_last:
                     last=th_last
 
-        #print("last:", last)
-        while not endFlg  and len(resultmemos)<50:
+        #lastがさっきと全く同じ→検索結果が一つもない
+        if last==limitDate:
+            return self.makeResultSet([],True)
+
+        print("last:", last)
+        #最後まで来たか今回送るメモが50件に達するまで検索を続ける
+        while not endFlg  and len(resultmemos)<20:
+            
             limitDate=limitDate-timedelta(days=30)
+            print("limitdate",limitDate,self.fromDay)
 
             tagSet=[]
-            #print('tf_list',tf_list)
             for tag in tf_list:
-                    #print(tag,self.facId)
-                    if  firstFlg:
-
-                        tags= TagSearchIndex.objects.order_by('-dateRegist').filter(keyTagMain__id=tag,  keyFacility=self.facId,dateRegist__gt=limitDate)
-                    else:
-                        tags= TagSearchIndex.objects.order_by('-dateRegist').filter(keyTagMain__id=tag, pk__lt=self.fromId,keyFacility=self.facId,dateRegist__gt=limitDate)
+                    tags= TagSearchIndex.objects.order_by('-dateRegist').filter(keyTagMain__id=tag,  dateRegist__lt=self.fromDay,keyFacility__pk=self.facId,dateRegist__gt=limitDate)
                     
                     if len(tags)==0:
                         #print(" NO TAGS ")
                         continue
 
                     sd=tags.values_list("keyMemoMain",flat=True)
-                    #sd2=set(sd)
-                    #print(sd)
                     tagSet.append(set(sd))
                     #このループでの最終
                     ths=tags.last()
 
-                    if firstFlg or  ths.pk<self.fromId:
-                        self.fromId=ths.pk
-
                     if last==ths.dateRegist:
                         endFlg=True
 
+            if len(tagSet)==0:
+                #print("tagset 0 end")
+                #return  self.makeResultSet([],endFlg)
+                continue
             resset=tagSet[0]
             for st in tagSet:
                 resset=resset.union(st)
@@ -248,8 +239,7 @@ class TagLeadTemplateView(TagLeadBaseView):
                 return self.makeResultSet([],True)
         
         resultSet=MemoMain.objects.filter(pk__in=resultmemos,numMemotype=NUM_MEMO_TYPE_FREE).order_by('-dateRegist')
-        #print(MemoMainSerializer(resultSet,many=True).data)
-        
+        print(" ok end")
         return  self.makeResultSet(resultSet,endFlg)
 
 
@@ -258,20 +248,26 @@ class TagLeadTemplateView(TagLeadBaseView):
         resultmemos=[]
         endFlg=False
 
-        firstFlg=True
-        if self.fromId!=-1:
-            firstFlg=False
-
         utc=pytz.UTC
 
-        limitDate=utc.localize(datetime.utcnow())
+        if self.fromDay=="-1":
+    
+            self.fromDay=pytz.UTC.localize(datetime.utcnow())+relativedelta(years=+1)
+            limitDate = utc.localize(datetime.utcnow())
+        else:
 
-        last= utc.localize(datetime.utcnow()) 
+            limitDate = utc.localize(dt.strptime(self.fromDay,'%Y-%m-%dT%H:%M:%S.%fZ'))
+        
+        last= limitDate
+        
         #最終日時を先に取る
+        if len(self.tagArray)==0:
+            return self.makeResultSet([],True)
+
         for tag in self.tagArray:
-            th= TagSearchIndex.objects.filter(keyTagMain__id=tag,keyFacility= self.facId).order_by('-dateRegist')
+            th= TagSearchIndex.objects.filter(keyTagMain__id=tag,keyFacility__pk= self.facId).order_by('-dateRegist')
             if len(th)==0:
-                return self.makeResultSet([],False)
+                return self.makeResultSet([],True)
             th_last=th.last().dateRegist
                
             if last>th_last:
@@ -283,28 +279,22 @@ class TagLeadTemplateView(TagLeadBaseView):
             tagSet=[]
             for tag in self.tagArray:
                 
-                if  firstFlg:
-                    tags= TagSearchIndex.objects.order_by('-dateRegist').filter(keyTagMain__id=tag,keyFacility=self.facId,dateRegist__gt=limitDate)
-                else:
-                    tags= TagSearchIndex.objects.order_by('-dateRegist').filter(keyTagMain__id=tag, pk__lt=self.fromId,keyFacility=self.facId,dateRegist__gt=limitDate)
+                tags= TagSearchIndex.objects.order_by('-dateRegist').filter(keyTagMain__id=tag,dateRegist__lt=self.fromDay,keyFacility__pk=self.facId,dateRegist__gt=limitDate)
 
-                if len(tags)==0:
-                    return self.makeResultSet([],False)
+                if len(tags)==0:                
+                    print("check has TagSearchIndex 308" )
+                    return self.makeResultSet([],True)
                 sd=tags.values_list("keyMemoMain",flat=True)
                 tagSet.append(set(sd))
                 #このループでの最終
                 ths=tags.last()
-
-                if firstFlg or  ths.pk<self.fromId:
-                    self.fromId=ths.pk
                 if last==ths.dateRegist:
                     endFlg=True
 
             resset=tagSet[0]
-            #print( "intersectioncheck",tagSet )
             for st in tagSet:
                 resset=resset.intersection(st)
-                
+            
             resultmemos.extend(list(resset))
             if endFlg and len(resultmemos)==0:
                 return self.makeResultSet([],endFlg)
@@ -317,29 +307,33 @@ class TagLeadTemplateView(TagLeadBaseView):
 
     def insertNewMemo(self):
         
-        print(self.dateRegist,"dateRegist")
-        print(self.datePublish,"datePublish")
+        #print(self.dateRegist,"dateRegist")
+        #print(self.datePublish,"datePublish")
 
         memo_serialize=None
-        setdata={'strTaglist': ','.join(self.tagArray) ,'strMainText':self.mainText ,'numMemoType':NUM_MEMO_TYPE_FREE,  'keySender': self.userId  ,'listReceiver':"" ,'datePublish':self.datePublish,'dateRegist':self.dateRegist,'keyFollowId':self.followId}
+        setdata={'strTaglist': ','.join(self.settags) ,'strMainText':self.mainText ,'numMemoType':NUM_MEMO_TYPE_FREE,  'keySender': self.userId  ,'listReceiver':"" ,'datePublish':self.datePublish,'dateRegist':self.dateRegist}
 
-        if self.followId!=-1:
+        print("validate check",self.followId)
+        if self.followId==-1:
+            print("no follow")
+            memo_serialize=MemoMainInputSerializer(data=setdata)
+        else:
             setdata['keyFollowId']=self.followId
             memo_serialize=FollowInputSerializer(data=setdata)
-        else:
-            memo_serialize=MemoMainInputSerializer(data=setdata)
-
 
         #is_valid()を入れてチェックしておく
         if not memo_serialize.is_valid():
             print(memo_serialize.errors)
-            pass
+            self.errorFlg=True
+            self.errorMsg=INSERT_VARIDATION_ERROR
+            self.errorCode=3
+            return
 
         memo=memo_serialize.save()
 
-        print("followCheck",self.followId, memo.keyFollowId)
+        #print("followCheck",self.followId, memo.keyFollowId)
 
-        tcheck=TagMain.objects.filter(pk__in=self.tagArray)
+        tcheck=TagMain.objects.filter(pk__in=self.settags)
 
         opArray=[]
         tagInsertArray=[]
@@ -349,18 +343,27 @@ class TagLeadTemplateView(TagLeadBaseView):
             if tag.numTagType==NUM_TAGTYPE_MEMBER:
                 #TagMain検索後に行う事
                 #勤務者タグから　宛先を取り出し、まとめておいて後で登録
-                opuser=OperateUser.objects.get(tagId=tag)
-                noticeArray.append(NoticeMain(keyMemoMain=memo,keyOperateUser=opuser,numNoticeType=1))
+                try:
+                    opuser=OperateUser.objects.get(tagId=tag)
+                    noticeArray.append(NoticeMain(keyMemoMain=memo,keyOperateUser=opuser,numNoticeType=1))
 
-                opArray.append(str(opuser.pk))
-                #勤務者タグの宛先に通知を送る
+                    opArray.append(str(opuser.pk))
+                    #勤務者タグの宛先に通知を送る
+                except OperateUser.DoesNotExist:
+                    self.errorFlg=True
+                    self.errorCode=4
+                    self.errorMsg=HAS_NO_VALID_USER+str(tag.pk)
+                    return
                 
             tagInsertArray.append(TagSearchIndex(keyMemoMain=memo,keyTagMain=tag,keyFacility=Facility(pk=self.facId),dateRegist=self.dateRegist))
 
         if len(opArray)>0:
-            print(opArray)
             memo.listReceiver=",".join(opArray)
             memo.save()
+
+        #送信者自身のタグも入れる
+        sender=OperateUser.objects.get(keyUser=self.request.user)
+        tagInsertArray.append(TagSearchIndex(keyMemoMain=memo,keyTagMain=sender.tagId,keyFacility=Facility(pk=self.facId),dateRegist=self.dateRegist))
 
         #TagSearchIndexにタグ情報を入れる
         
@@ -373,20 +376,26 @@ class TagLeadTemplateView(TagLeadBaseView):
 
     def insertFormattedMemo(self):
         
-        print(self.dateRegist,"dateRegist")
-        print(self.datePublish,"datePublish")
+        #print(self.dateRegist,"dateRegist")
+        #print(self.datePublish,"datePublish")
+        senddata={'strTaglist': ','.join(self.settags) ,'strMainText':self.mainText ,'numMemotype':NUM_MEMO_TYPE_FORMATTED,'keySender': self.userId  ,'listReceiver':"" ,'datePublish':self.datePublish,'dateRegist':self.dateRegist,'keyFollowId':-1}
 
-        memo_serialize=MemoMainSerializer(data={'strTaglist': ','.join(self.tagArray) ,'strMainText':self.mainText ,'numMemoType':NUM_MEMO_TYPE_FORMATTED,'keySender': self.userId  ,'listReceiver':"" ,'datePublish':self.datePublish,'dateRegist':self.dateRegist,'keyFollowId':-1})
+        memo_serialize=MemoMainSerializer(data=senddata)
 
         #is_valid()を入れてチェックしておく
         if not memo_serialize.is_valid():
-            print(memo_serialize.errors)
-            pass
+            self.errorFlg=True
+            self.errorMsg= FORMATTED_INSERT_MEMO
+            self.errorCode=4
+            return
 
-        memo=memo_serialize.save()
+            
+
+        memo= memo_serialize.save()
+        #print(" formatted :",memo_serialize.data)
         #数字タグを外す
         twArray=[]
-        for tw in self.tagArray:
+        for tw in self.settags:
             if  ":" not in  tw:
                 twArray.append(tw)
 
@@ -411,7 +420,7 @@ class FormattedTagListView(generics.ListAPIView):
 
     def get_queryset(self):
         facId=self.request.GET.get("facId")
-        return TagInFormatedMemo.objects.filter(keyTagMain__keyFacility__id=facId)
+        return TagInFormatedMemo.objects.filter(keyTagMain__keyFacility__pk=facId)
 
     
 class MainListView (TagLeadTemplateView):
@@ -421,6 +430,9 @@ class MainListView (TagLeadTemplateView):
 
     def get(self,request):
         self.setRequestParams(request)
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
+
         
         return Response(self.getMainListResult())
 #class ReadCheckInMainListView(MainListView):
@@ -432,12 +444,19 @@ class TagSearchView (TagLeadTemplateView):
 
         self.setRequestParams(request)
         
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg}) 
+
         return Response(self.getTagSearchResult())
 
 class NoticeMainView(TagLeadTemplateView):
 
     def get(self,request):
         self.setRequestParams(request)
+
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg}) 
+
 
         return Response(self.getNoticeResult())
 
@@ -471,12 +490,16 @@ class NoticeMainView(TagLeadTemplateView):
 class MemoInsertView(TagLeadTemplateView):
     def get(self,request):
         self.setRequestParams(request)
-        self.insertNewMemo()
         
-        if self.viewname==CHANGE_MAIN_VIEW:
-            return Response(self.getMainListResult())
-        else:
-            return Response(self.getTagSearchResult())
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg}) 
+
+        self.insertNewMemo()
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg}) 
+        
+
+        return Response({"ok":True})
         
 
 class FormattedMemoInsertView(TagLeadTemplateView):
@@ -484,21 +507,143 @@ class FormattedMemoInsertView(TagLeadTemplateView):
     def get(self,request):
 
         self.setRequestParams(request)
-
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg}) 
+        
         self.insertFormattedMemo()
         
-        if self.viewname==CHANGE_MAIN_VIEW:
-            return Response(self.getMainListResult())
-        else :
-            return Response(self.getTagSearchResult())
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg})
+
+        return Response({"ok":True})
+        
+
+
+
+class MemoDeleteView(TagLeadTemplateView):
+    def get(self,request):
+        self.setRequestParams(request)
+        
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg})
+
+        self.deleteMemo()
+        
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg})
+
+        return Response({"ok":"ok"})
+
+
+
+    def deleteMemo(self):
+        #memoTarget={}
+        try:
+            memoTarget=MemoMain.objects.get(pk=self.memoId)
+            
+            print("memoTarget",memoTarget.keySender.id,self.userId)
+
+        except MemoMain.DoesNotExist:
+            self.errorFlg=True
+            self.errorMsg=HAS_NO_RESULT+self.memoId
+            return
+
+        if memoTarget.keySender.id!=self.userId:
+            #送信者以外は削除できない
+            self.errorFlg=True
+            self.errorMsg=HAS_NO_PERMISSION+str(self.userId)
+            return
+
+        #完全削除可能チェック　すでに他のメモと関係性が出来ていたら文章の削除のみとする
+        canDelete=True
+        if memoTarget.keyReplyBase:
+            canDelete=False
+        #メモを残すかチェック
+        #親になっているメモはNG
+        try :
+            MemoMain.objects.get(keyParent=memoTarget)
+            canDelete=False
+        except MemoMain.DoesNotExist:
+            pass
+        
+        #フォローされているメモはNG
+        try :
+            MemoMain.objects.get(keyFollowId=memoTarget)
+            canDelete=False
+        except MemoMain.DoesNotExist:
+            pass
+        
+        #既読になっているメモはNG
+        try:
+            IsUserReadInMemo.objects.get(keyMemoMain=memoTarget)
+            canDelete=False
+        except IsUserReadInMemo.DoesNotExist:
+            pass
+
+        #お気に入りになっているメモはNG
+        try:
+            IsUserFavoriteInMemo.objects.get(keyMemoMain=memoTarget)
+            canDelete=False
+        except IsUserFavoriteInMemo.DoesNotExist:
+            pass
+
+        #バックアップ
+        MemoMainBackup.objects.create(keyMemoId=self.memoId,typeBackUpCase="modify", dateUpdate=datetime.now(),charBackUpText=memoTarget.strMainText)
+
+        #NGになっていないメモは削除可能　TagSearchIndexは勝手に削除されるはず
+        if canDelete:
+            memoTarget.delete()
+
+        else:
+            #NGになっているメモは本文だけ削除する
+            memoTarget.strMainText=""
+            memoTarget.boolHasDeleted=True
+            memoTarget.save()
+
+
+class MemoModifyView(TagLeadTemplateView):
+
+    def get(self,request):
+        self.setRequestParams(request)
+
+        #バックアップ
+        bText=""
+        
+        #本文と設定日時のみ更新可能
+        try:
+            memoTarget=MemoMain.objects.get(pk=self.memoId)
+            bText=memoTarget.strMainText
+            MemoMainBackup.objects.create(keyMemoId=self.memoId,typeBackUpCase="modify", dateUpdate=datetime.now(),charBackUpText=bText)
+
+            memoTarget.strMainText=self.mainText
+            #memoTarget.dataRegist=self.dateRegist
+            #更新済みフラグが付く
+            memoTarget.boolHasModified=True
+            memoTarget.save()
+            return Response(MemoMainSerializer(memoTarget).data)
+
+
+        except MemoMain.DoesNotExist:
+            self.errorFlg=True
+            self.errorCode=6
+            self.errorMsg= HAS_NO_DATA+self.memoId
+            return Response({"error":True,"errorMsg":self.errorMsg})
+        
 
 
 class ReplyThreadView(TagLeadTemplateView):
 
     def get(self,request):
         self.setRequestParams(request)
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
 
-        return Response(self.getReplyList())
+        res=self.getReplyList()
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
+
+
+        return Response(res)
 
 
     def getReplyList(self):
@@ -508,7 +653,11 @@ class ReplyThreadView(TagLeadTemplateView):
             baseMemo=MemoMain.objects.get(pk=self.memoId)
         except MemoMain.DoesNotExist:
             print(" なっちゃねーな ")
-        print(baseMemo)
+            self.errorFlg=True
+            self.errorCode=5
+            self.errorMsg=HAS_NO_DATA+self.memoId
+            return
+
         if not baseMemo.keyReplyBase:
             return self.makeResultSet([baseMemo],True) 
 
@@ -526,7 +675,14 @@ class ReplyInsertView(ReplyThreadView):
         print("memoId",self.memoId)
 
         memo=self.insertNewMemo()
-        baseMemo=MemoMain.objects.get(pk=self.memoId)
+        try:
+            baseMemo=MemoMain.objects.get(pk=self.memoId)
+        except MemoMain.DoesNotExist:
+            self.errorFlg=True
+            self.errorCode=6
+            self.errorMsg=HAS_NO_DATA+self.memoId
+            return
+            
         
         if not baseMemo.keyReplyBase:
 
@@ -549,39 +705,39 @@ class ReplyInsertView(ReplyThreadView):
         #ターゲットが差し替えになったので
         self.memoId=memo.pk
 
-class SetReadMarkView(views.APIView):
+class SetReadMarkView(TagLeadBaseView):
 
     def get(self,request):
+        self.setRequestParams(request)
 
-        userId=request.GET.get("userId")
         memoId=request.GET.get("memoId")
         readMark=request.GET.get("read")
 
         if readMark=="true":
 
-            IsUserReadInMemo.objects.create(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=userId))
+            IsUserReadInMemo.objects.create(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=self.userId))
         elif readMark=="false":
-            IsUserReadInMemo.objects.filter(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=userId)).delete()
+            IsUserReadInMemo.objects.filter(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=self.userId)).delete()
 
-        return Response({"userId":userId,"memoId":memoId,"read":readMark})
+        return Response({"userId":self.userId,"memoId":memoId,"read":readMark})
 
 
 
-class SetFavoriteMarkView(views.APIView):
+class SetFavoriteMarkView(TagLeadBaseView):
 
     def get(self,request):
+        self.setRequestParams(request)
 
-        userId=request.GET.get("userId")
         memoId=request.GET.get("memoId")
         favMark=request.GET.get("fav")
 
         if favMark=="true":
 
-            IsUserFavoriteInMemo.objects.create(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=userId))
+            IsUserFavoriteInMemo.objects.create(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=self.userId))
         elif favMark=="false":
-            IsUserFavoriteInMemo.objects.filter(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=userId)).delete()
+            IsUserFavoriteInMemo.objects.filter(keyMemoMain=MemoMain(pk=memoId),keyOperateUser=OperateUser(pk=self.userId)).delete()
 
-        return Response({"userId":userId,"memoId":memoId,"read":favMark})
+        return Response({"userId":self.userId,"memoId":memoId,"read":favMark})
 
 class ShowUserFavoriteView(TagLeadTemplateView):
 
