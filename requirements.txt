@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 asgiref 
+=======
+asgiref
+>>>>>>> 1f3989df6f222043c446961f7bc6fe5d4686d0b4
 astroid==2.5
 certifi==2021.5.30
 cffi==1.14.6
@@ -26,7 +30,7 @@ mccabe==0.6.1
 oauthlib==3.1.1
 odfpy==1.4.1
 openpyxl==3.0.7
-psycopg2
+psycopg2 
 pycparser==2.20
 PyJWT==2.1.0
 pylint==2.7.1
