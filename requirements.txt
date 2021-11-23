@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-asgiref 
-=======
 asgiref
->>>>>>> 1f3989df6f222043c446961f7bc6fe5d4686d0b4
 astroid==2.5
 certifi==2021.5.30
 cffi==1.14.6
