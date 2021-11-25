@@ -13,7 +13,7 @@ django-cors-headers
 django-filter
 #django-import-export==2.5.0
 #django-oauth-toolkit==1.5.0
-djangorestframework==3.12.4
+djangorestframework
 drf-social-oauth2==1.0.9
 et-xmlfile==1.1.0
 idna==3.2
