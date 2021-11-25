@@ -32,6 +32,7 @@ pycparser==2.20
 PyJWT==2.1.0
 pylint==2.7.1
 python-decouple==3.4
+python-dateutil
 python3-openid==3.2.0
 pytz
 PyYAML==5.4.1
