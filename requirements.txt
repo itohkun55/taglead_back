@@ -10,7 +10,7 @@ Deprecated==1.2.13
 diff-match-patch==20200713
 Django==2.1
 django-cors-headers
-django-filter==2.4.0
+django-filter
 django-import-export==2.5.0
 django-oauth-toolkit==1.5.0
 djangorestframework==3.12.4
