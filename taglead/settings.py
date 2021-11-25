@@ -161,6 +161,17 @@ DATABASES = {
 #         },
 #     }
 # }
+#本番セッティング
+DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+         'NAME': 'itohkun55$taglead_db',                                                                                                                
+         'USER': 'itohkun55',                      # sqlite3では使わないが、MySQLでは使う。さっきのページのユーザ名
+         'PASSWORD': 'Masahikoitoh55',            # sqlite3では使わないが、MySQLでは使う。さっき設定したパスワード
+         'HOST': 'mysql.server',                      # sqllite3ではいらないが、これ使う
+         #'PORT': '3360',                      # おそらく使わない。
+     }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
