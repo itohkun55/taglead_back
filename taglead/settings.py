@@ -164,12 +164,12 @@ DATABASES = {
 #本番セッティング
 DATABASES = {
      'default': {
-         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+         'ENGINE': 'django.db.backends.mysql',
          'NAME': 'itohkun55$taglead_db',                                                                                                                
-         'USER': 'itohkun55',                      # sqlite3では使わないが、MySQLでは使う。さっきのページのユーザ名
-         'PASSWORD': 'Masahikoitoh55',            # sqlite3では使わないが、MySQLでは使う。さっき設定したパスワード
-         'HOST': 'mysql.server',                      # sqllite3ではいらないが、これ使う
-         #'PORT': '3360',                      # おそらく使わない。
+         'USER': 'itohkun55',                      
+         'PASSWORD': 'Masahikoitoh55',           
+         'HOST': 'itohkun55.mysql.pythonanywhere-services.com',               
+         #'PORT': '3360',                   
      }
 }
 
