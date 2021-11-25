@@ -11,7 +11,7 @@ diff-match-patch==20200713
 Django==2.1
 django-cors-headers
 django-filter
-#django-import-export==2.5.0
+django-import-export
 #django-oauth-toolkit==1.5.0
 djangorestframework
 drf-social-oauth2==1.0.9
