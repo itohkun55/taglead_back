@@ -82,14 +82,14 @@ INSTALLED_APPS = [
     'rest_framework',
     #'rest_framework.authtoken',
 
-    'oauth2_provider',
-    'social_django',
-    'drf_social_oauth2',
-    'corsheaders',
     'taglead',
     'import_export',
     'core',
     'api',
+    'oauth2_provider',
+    'social_django',
+    'drf_social_oauth2',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
