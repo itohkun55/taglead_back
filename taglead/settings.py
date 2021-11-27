@@ -207,6 +207,7 @@ USE_TZ = True
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3000',
+    'https://taglead-test.vercel.app'
 ]
 
 
