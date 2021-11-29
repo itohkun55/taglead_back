@@ -15,7 +15,8 @@ from .views import (
     NoticeMainView,
     ShowUserFavoriteView,
     MemoDeleteView,
-    MemoModifyView
+    MemoModifyView,
+    TestRealView
     )
 from .subview import (
     MakeTagByFacilityAdminView,
@@ -36,6 +37,7 @@ router = routers.DefaultRouter()
 
 
 urlpatterns = [
+    url(r'^ok', TestRealView.as_view()),
     
     url('auth/',include('drf_social_oauth2.urls',namespace='drf')), #add this
     url(r'^', include(router.urls)),

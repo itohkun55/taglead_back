@@ -64,6 +64,13 @@ CHANGE_TAG_VIEW="tag";
 CHANGE_REPLY_VIEW="reply";
 
 
+class TestRealView(views.APIView):
+    def get(self,request):
+        print("Welcome!")
+
+        return Response({"ok":"OK!"})
+
+
 class TagLeadBaseView(views.APIView):
     #認証　このクラスのサブクラスは全てここで認証済み
     authentication_classes=[OAuth2Authentication,SocialAuthentication]
