@@ -124,8 +124,11 @@ class InitialDataListView(TagLeadBaseView):
         
         self.setRequestParams(request)
 
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
+
         res=self.getTagList()
-        print("userRank",self.userRank)
+        #print("userRank",self.userRank)
         
         if self.errorFlg:
             return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
