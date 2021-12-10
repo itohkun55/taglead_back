@@ -125,13 +125,13 @@ class InitialDataListView(TagLeadBaseView):
         self.setRequestParams(request)
 
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
 
         res=self.getTagList()
         #print("userRank",self.userRank)
         
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
 
 
         return Response({
@@ -323,7 +323,7 @@ class TagLeadTemplateView(TagLeadBaseView):
         memo_serialize=None
         setdata={'strTaglist': ','.join(self.settags) ,'strMainText':self.mainText ,'numMemoType':NUM_MEMO_TYPE_FREE,  'keySender': self.userId  ,'listReceiver':"" ,'datePublish':self.datePublish,'dateRegist':self.dateRegist}
 
-        print("validate check",self.followId)
+        #print("validate check",self.followId)
         if self.followId==-1:
             print("no follow")
             memo_serialize=MemoMainInputSerializer(data=setdata)
@@ -441,7 +441,7 @@ class MainListView (TagLeadTemplateView):
     def get(self,request):
         self.setRequestParams(request)
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
 
         
         return Response(self.getMainListResult())
@@ -455,7 +455,7 @@ class TagSearchView (TagLeadTemplateView):
         self.setRequestParams(request)
         
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg}) 
 
         return Response(self.getTagSearchResult())
 
@@ -465,7 +465,7 @@ class NoticeMainView(TagLeadTemplateView):
         self.setRequestParams(request)
 
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg}) 
 
 
         return Response(self.getNoticeResult())
@@ -502,11 +502,11 @@ class MemoInsertView(TagLeadTemplateView):
         self.setRequestParams(request)
         
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg}) 
 
         self.insertNewMemo()
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg}) 
         
 
         return Response({"ok":True})
@@ -518,12 +518,12 @@ class FormattedMemoInsertView(TagLeadTemplateView):
 
         self.setRequestParams(request)
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg}) 
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg}) 
         
         self.insertFormattedMemo()
         
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg})
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg})
 
         return Response({"ok":True})
         
@@ -535,12 +535,12 @@ class MemoDeleteView(TagLeadTemplateView):
         self.setRequestParams(request)
         
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg})
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg})
 
         self.deleteMemo()
         
         if self.errorFlg:
-            return Response({"error":True,"errorMsg":self.errorMsg})
+            return Response({"errorFlg":True,"errorMsg":self.errorMsg})
 
         return Response({"ok":"ok"})
 
@@ -657,12 +657,12 @@ class ReplyThreadView(TagLeadTemplateView):
 
 
     def getReplyList(self):
-        print("getReplyList")
+        #print("getReplyList")
         #リプライの元データを引く
         try:
             baseMemo=MemoMain.objects.get(pk=self.memoId)
         except MemoMain.DoesNotExist:
-            print(" なっちゃねーな ")
+            #print(" なっちゃねーな ")
             self.errorFlg=True
             self.errorCode=5
             self.errorMsg=HAS_NO_DATA+self.memoId
