@@ -1,23 +1,13 @@
-from django.shortcuts import render
-from django.utils import datastructures
+
 from api.SendMessageLibrary import HAS_NO_ACCOUNT
-from rest_framework import generics,views
 from rest_framework.response import Response
 
-from django.contrib.auth.models import User
-from datetime import datetime,timedelta,timezone
+from datetime import datetime
 from .views import TagLeadBaseView 
 
-
-from rest_framework.permissions import IsAuthenticated
-from drf_social_oauth2.authentication import SocialAuthentication
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication
-    
-from core.models import GuestMain, MemoMain, TagInFormatedMemo,TagMain,Facility,OperateUser,TagSearchIndex,UserTagConfig
+from core.models import GuestMain,TagMain,Facility,OperateUser,UserTagConfig
 
 from .Serializers import (
-    TagLeadUserSerializer,
-    MemoMainSerializer,
     TagMainSerializer,
     
     TagInFormatedMemoSerializer,
@@ -29,8 +19,6 @@ from .ReplacedNumberLibrary import (
     NUM_TAGTYPE_MEMBER,
     NUM_TAG_STATUS_MAINLIST,
     NUM_TAG_STATUS_SUBLIST,
-    NUM_MEMO_TYPE_FREE,
-    NUM_MEMO_TYPE_FORMATTED,
     NUM_USER_HAS_CHANGE_AUTH)
 
 
@@ -49,7 +37,7 @@ class NewUserSetView(TagLeadBaseView):
         userName=gets.get("username")
         pwd=gets.get("pwd")
 
-        newtag=TagMain.objects.create(strTagName=userName,numTagType=NUM_TAGTYPE_MEMBER,numTagRank=2,datePublish=datetime.now(),facilityId=Facility(pk=facId) ,strSuffix="")
+        newtag=TagMain.objects.create(strTagName=userName,numTagType=NUM_TAGTYPE_MEMBER,numTagRank=100,datePublish=datetime.now(),facilityId=Facility(pk=facId) ,strSuffix="")
         
         newOp=OperateUser.objects.create(strName=userName,keyFacility=Facility(pk=facId),datePublish=datetime.now(),tagId=newtag)
 

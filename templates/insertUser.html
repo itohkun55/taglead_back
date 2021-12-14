@@ -1,0 +1,14 @@
+<html>
+<head>
+<title>insertUser</title>
+</head>
+<body>
+
+<form action="insert" type="text" method="POST">
+    
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">送信</button>
+</form>
+</body>
+</html>

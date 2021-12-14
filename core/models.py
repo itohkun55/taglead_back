@@ -87,6 +87,11 @@ class OperateUser(models.Model):
     def __str__(self):
         return self.strName
 
+class UserMakePool(models.Model):
+    keyUser=models.ForeignKey(User,verbose_name="待機ユーザ",on_delete=CASCADE)
+    boolIsDone=models.BooleanField(verbose_name="登録待ちフラグ",default=False)
+
+
 #タグのユーザーごと設定
 class UserTagConfig(models.Model):
     #ユーザー

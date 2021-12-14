@@ -41,6 +41,7 @@ from core.models import (
     Facility,
     OperateUser,
     TagSearchIndex,
+    UserMakePool,
     UserTagConfig,
     IsUserReadInMemo,
     IsUserFavoriteInMemo,
@@ -111,6 +112,12 @@ class TagLeadBaseView(views.APIView):
 
         except OperateUser.DoesNotExist:
             print("初期認証エラー")
+            # try:
+            #     userCheck=UserMakePool.objects.get(keyUser=request.user,boolIsDone=False)
+            # except UserMakePool.DoesNotExist:
+            #     UserMakePool.objects.create(keyUser=request.user)
+            
+            
             self.errorFlg=True
             self.errorMsg=HAS_NO_ACCOUNT
             self.errorCode=1
@@ -121,6 +128,13 @@ class TagLeadBaseView(views.APIView):
 class InitialDataListView(TagLeadBaseView):
 
     def get(self,request):
+
+        try:
+            userCheck=UserMakePool.objects.get(keyUser=request.user,boolIsDone=False)
+        except UserMakePool.DoesNotExist:
+            UserMakePool.objects.create(keyUser=request.user)
+            return Response({"errorFlg":True,"errorMsg":HAS_NO_ACCOUNT,"errorCode":1})
+        
         
         self.setRequestParams(request)
 

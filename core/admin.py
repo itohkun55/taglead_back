@@ -17,7 +17,8 @@ from .models import (
     GuestMain,
     IsUserFavoriteInMemo,
     NoticeMain,
-    MemoMainBackup
+    MemoMainBackup,
+    UserMakePool
     )
 
 class TagMainModelResource(ModelResource):
@@ -57,6 +58,8 @@ class TagSearchIndexAdmin(admin.ModelAdmin):
     resource_class=TagSearchIndexResources
     formats=[base_formats.CSV]
 
+class UserMakePoolAdmin(admin.ModelAdmin):
+    list_display=('boolIsDone','keyUser')
 
 class UserTagConfigAdmin(admin.ModelAdmin):
     list_display=('keyOperateUser','keyTag','numTagStatus','boolIsShownInList')
@@ -88,3 +91,4 @@ admin.site.register(GuestMain,GuestMainAdmin)
 admin.site.register(IsUserFavoriteInMemo,FavoriteCheckAdmin)
 admin.site.register(NoticeMain)
 admin.site.register( MemoMainBackup,BackUpAdmin)
+admin.site.register(UserMakePool, UserMakePoolAdmin)
