@@ -107,6 +107,7 @@ class TagLeadBaseView(views.APIView):
             targetUser=OperateUser.objects.get(keyUser=request.user)
             self.userId=targetUser.pk
             self.userRank=targetUser.numRank
+            self.username=targetUser.strName
 
             self.facId=targetUser.keyFacility.pk
 
@@ -128,6 +129,7 @@ class TagLeadBaseView(views.APIView):
 class InitialDataListView(TagLeadBaseView):
 
     def get(self,request):
+        username=""
 
         try:
             userCheck=UserMakePool.objects.get(keyUser=request.user,boolIsDone=False)
@@ -156,6 +158,7 @@ class InitialDataListView(TagLeadBaseView):
             "formatted":TagInFormatedMemoSerializer(res["formatted"],many=True).data,
             "noticeCount":res["noticeCount"],
             "userId":self.userId,
+            "username":self.username,
             "userRank":self.userRank
             })
 
