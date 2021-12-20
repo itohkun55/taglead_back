@@ -16,7 +16,8 @@ from .views import (
     ShowUserFavoriteView,
     MemoDeleteView,
     MemoModifyView,
-    TestRealView
+    TestRealView,
+    FirstAccessView
     )
 from .subview import (
     MakeTagByFacilityAdminView,
@@ -31,10 +32,6 @@ from .subview import (
 
 # Create your views here.
 router = routers.DefaultRouter()
-#router.register(r'test', TestAppendValueView)
-#router.register(r'users', TagLeadUserViewSet)
-#router.register(r'tagsearch', TagSearchView)
-
 
 urlpatterns = [
     url(r'^ok', TestRealView.as_view()),
@@ -42,6 +39,7 @@ urlpatterns = [
     url('auth/',include('drf_social_oauth2.urls',namespace='drf')), #add this
     url(r'^', include(router.urls)),
     #url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^firstend', FirstAccessView.as_view()),
     url(r'^inituser', InitialDataListView.as_view()),
     url(r'^newuser', NewUserSetView.as_view()),
     url(r'^main', MainListView.as_view()),

@@ -1,4 +1,5 @@
 from api.SendMessageLibrary import (
+    ALREADY_HAS_ACCOUNT,
     FORMATTED_INSERT_MEMO, 
     HAS_NO_ACCOUNT, 
     HAS_NO_RESULT,
@@ -123,6 +124,20 @@ class TagLeadBaseView(views.APIView):
             self.errorMsg=HAS_NO_ACCOUNT
             self.errorCode=1
 
+class FirstAccessView(TagLeadBaseView):
+
+    def get(self,request):
+        
+        print("username",request.user.last_name)
+        try:
+            UserMakePool.objects.get(keyUser__username=request.user.username)
+            print("既存ユーザー")
+        except UserMakePool.DoesNotExist:
+            UserMakePool.objects.create(keyUser=request.user)
+            print("新規ユーザー")
+            return Response({"ok":"ok"})
+        
+        return Response({"errorFlg":True,"errorMsg":ALREADY_HAS_ACCOUNT,"errorCode":1})
         
 
 #初期情報のロード
@@ -130,12 +145,13 @@ class InitialDataListView(TagLeadBaseView):
 
     def get(self,request):
         username=""
+        print("username",request.user.last_name)
 
-        try:
-            userCheck=UserMakePool.objects.get(keyUser=request.user,boolIsDone=False)
-        except UserMakePool.DoesNotExist:
-            UserMakePool.objects.create(keyUser=request.user)
-            return Response({"errorFlg":True,"errorMsg":HAS_NO_ACCOUNT,"errorCode":1})
+        # try:
+        #     userCheck=UserMakePool.objects.get(keyUser=request.user,boolIsDone=True)
+        # except UserMakePool.DoesNotExist:
+        #     UserMakePool.objects.create(keyUser=request.user)
+        #     return Response({"errorFlg":True,"errorMsg":HAS_NO_ACCOUNT,"errorCode":1})
         
         
         self.setRequestParams(request)

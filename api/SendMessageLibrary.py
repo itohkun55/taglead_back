@@ -10,4 +10,6 @@ INSERT_VARIDATION_ERROR="入力内容にエラーがありました。"
 
 HAS_NO_VALID_USER="ユーザーの設定が異常です。　ID:"
 
+ALREADY_HAS_ACCOUNT="既に認証手続きは完了しています。"
+
 HAS_NO_DATA="データが存在しません ID:"
