@@ -19,7 +19,8 @@ from .ReplacedNumberLibrary import (
     NUM_TAGTYPE_MEMBER,
     NUM_TAG_STATUS_MAINLIST,
     NUM_TAG_STATUS_SUBLIST,
-    NUM_USER_HAS_CHANGE_AUTH)
+    NUM_USER_HAS_CHANGE_AUTH,
+    NUM_USER_RANK_LEADER)
 
 
 
@@ -99,21 +100,25 @@ class ModifyTagByFacilityAdminView(TagLeadBaseView):
 
         #実行者は権限があるか
         targetuser=OperateUser.objects.get(pk=self.userId)
-        if targetuser.numRank>NUM_USER_HAS_CHANGE_AUTH:
+        if targetuser.numRank<=NUM_USER_RANK_LEADER:
 
             return Response({"error":True,"errorMsg":HAS_NO_ACCOUNT,"errorCode":1}) 
 
 
         try:
             mTag=TagMain.objects.get(pk=tagId)
+            print("mTag OK")
             mTag.strTagName=tagname
             mTag.numTagType=tagtype
             mTag.numTagRank=tagrank
+
+            print(mTag)
             mTag.save()
 
         except TagMain.DoesNotExist:
             return Response({"error":True,"errorMsg":HAS_NO_ACCOUNT,"errorCode":1}) 
 
+        print(" OK  Modify")
         return Response({"ok":"ok"})
 
 

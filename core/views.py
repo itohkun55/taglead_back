@@ -74,7 +74,7 @@ class InsertNewUserView(FormView):
             UserTagConfig.objects.create(keyOperateUser=user,keyTag=newtag,numTagStatus=1,boolIsShownInList=True)
         
         #UserTagConfigで登録すべきTagMain（Typeが2・3・4・6)　※１は必須、5は補助タグ
-        TargetTags=TagMain.objects.filter(numTagType__in=[1,2,3,4,6])
+        TargetTags=TagMain.objects.filter(numTagType__in=[1,2,3,4,6],facilityId__pk__in=[1,facId])
         for tag in TargetTags:
             newconfig=UserTagConfig.objects.create(keyOperateUser=newOp,keyTag=tag,numTagStatus=1,boolIsShownInList=True)
 
