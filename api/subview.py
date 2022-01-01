@@ -107,12 +107,12 @@ class ModifyTagByFacilityAdminView(TagLeadBaseView):
 
         try:
             mTag=TagMain.objects.get(pk=tagId)
-            print("mTag OK")
+            # print("mTag OK")
             mTag.strTagName=tagname
             mTag.numTagType=tagtype
             mTag.numTagRank=tagrank
 
-            print(mTag)
+            # print(mTag)
             mTag.save()
 
         except TagMain.DoesNotExist:

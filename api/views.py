@@ -111,6 +111,7 @@ class TagLeadBaseView(views.APIView):
             self.username=targetUser.strName
 
             self.facId=targetUser.keyFacility.pk
+            self.facName=targetUser.keyFacility.strName
 
         except OperateUser.DoesNotExist:
             print("初期認証エラー")
@@ -174,6 +175,7 @@ class InitialDataListView(TagLeadBaseView):
             "formatted":TagInFormatedMemoSerializer(res["formatted"],many=True).data,
             "noticeCount":res["noticeCount"],
             "userId":self.userId,
+            "facName":self.facName,
             "username":self.username,
             "userRank":self.userRank
             })
@@ -710,6 +712,9 @@ class ReplyInsertView(ReplyThreadView):
 
     def get(self,request):
         self.setRequestParams(request)
+
+        if self.errorFlg:
+            return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
         self.replyInsert()
 
         return Response(self.getReplyList())
