@@ -208,7 +208,7 @@ class TagLeadTemplateView(TagLeadBaseView):
             resset=MemoMainSerializer(res,many=True).data
             readSet=IsUserReadInMemo.objects.filter(keyMemoMain__in=res,keyOperateUser__pk=self.userId).values_list("keyMemoMain",flat=True)
             favoriteSet=IsUserFavoriteInMemo.objects.filter(keyMemoMain__in=res,keyOperateUser__pk=self.userId).values_list("keyMemoMain",flat=True)
-        # print(" リリース直前 ",flg)
+        print(" リリース直前 ",flg)
         return {"timeline":resset,"read":readSet, "fav":favoriteSet, "endflg":flg}
 
     #一覧用検索

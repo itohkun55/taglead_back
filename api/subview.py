@@ -127,7 +127,20 @@ class ShowUserTagConfigView(TagLeadBaseView):
     def get(self,request):
         self.setRequestParams(request)
         config=UserTagConfig.objects.filter(keyOperateUser__pk=self.userId).order_by('-keyTag__numTagRank')
-        return Response(UserTagConfigSerializer(config,many=True).data)
+        # return Response(
+            
+        #     UserTagConfigSerializer(config,many=True).data)
+        
+        useFac=[NUM_COMMON_TAG_FACILITY,self.facId]
+        useTag=TagMain.objects.filter(facilityId__id__in=useFac)
+
+        res= {
+            "main":UserTagConfigSerializer(UserTagConfig.objects.filter(numTagStatus=NUM_TAG_STATUS_MAINLIST,keyOperateUser__id=self.userId),many=True).data,
+            "sub":UserTagConfigSerializer(UserTagConfig.objects.filter(numTagStatus=NUM_TAG_STATUS_SUBLIST,keyOperateUser__id=self.userId),many=True).data ,
+            "user_config":UserTagConfigSerializer(UserTagConfig.objects.filter(keyOperateUser__pk=self.userId),many=True).data
+        }
+        
+        return Response(res)
 
 #ユーザー権限でタグを新規作成する
 #ヴァリデーションが必要
@@ -139,7 +152,7 @@ class MakeNewTagView(TagLeadBaseView):
         tagname=gets.get("tagname")
         tagtype=gets.get("tagtype")
         tagrank=gets.get("tagrank")
-        print("SSSSSS")
+        # print("SSSSSS")
 
 
 
