@@ -200,6 +200,7 @@ class TagInFormatedMemo(models.Model):
     strGroup=models.CharField(verbose_name="グループ",max_length=50)
     strShow=models.CharField(verbose_name="表示用数列",max_length=100,blank=True)
     strHide=models.CharField(verbose_name="消滅用数列",max_length=100,blank=True)
+    strSelectParameters=models.CharField(verbose_name="選択肢",max_length=100,blank=True)
 
 
 

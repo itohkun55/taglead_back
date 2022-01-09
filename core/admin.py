@@ -68,7 +68,7 @@ class FacilityAdmin(admin.ModelAdmin):
     list_display=('id','strName')
 
 class TagInformatedMemoAdmin(admin.ModelAdmin):
-    list_display=("id","keyTagMain","numTagPhase","strGroup","strShow","strHide")
+    list_display=("id","keyTagMain","numTagPhase","strGroup","strShow","strHide","strSelectParameters")
 
 class GuestMainAdmin(admin.ModelAdmin):
     list_display=("strGuestName","keyTagMain","keyPlaceTagMain")

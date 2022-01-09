@@ -50,8 +50,8 @@ class NewUserSetView(TagLeadBaseView):
                 continue
             UserTagConfig.objects.create(keyOperateUser=user,keyTag=newtag,numTagStatus=1,boolIsShownInList=True)
         
-        #UserTagConfigで登録すべきTagMain（Typeが2・3・4・6)　※１は必須、5は補助タグ
-        TargetTags=TagMain.objects.filter(numTagType__in=[1,2,3,4,6])
+        #UserTagConfigで登録すべきTagMain（Typeが2・3・4・5・6)　※１は必須、
+        TargetTags=TagMain.objects.filter(numTagType__in=[1,2,3,4,5,6])
         for tag in TargetTags:
             newconfig=UserTagConfig.objects.create(keyOperateUser=newOp,keyTag=tag,numTagStatus=1,boolIsShownInList=True)
 

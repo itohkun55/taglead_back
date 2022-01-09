@@ -66,7 +66,7 @@ class TagInFormatedMemoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=TagInFormatedMemo
-        fields=('id','keyTagMain','numTagPhase','strGroup','strShow','strHide')
+        fields=('id','keyTagMain','numTagPhase','strGroup','strShow','strHide','strSelectParameters')
 
 class UserTagConfigSerializer(serializers.ModelSerializer):
     #keyTag=TagMainSerializer(many=False)

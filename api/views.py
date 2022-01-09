@@ -188,7 +188,7 @@ class InitialDataListView(TagLeadBaseView):
         useTag=TagMain.objects.filter(facilityId__id__in=useFac)
         mainTags=UserTagConfig.objects.filter(numTagStatus=NUM_TAG_STATUS_MAINLIST,keyOperateUser__id=self.userId, keyTag__in=useTag)
         subTags=UserTagConfig.objects.filter(numTagStatus=NUM_TAG_STATUS_SUBLIST,keyOperateUser__id=self.userId, keyTag__in=useTag)
-        formatted=TagInFormatedMemo.objects.filter(keyFacility=self.facId)
+        formatted=TagInFormatedMemo.objects.filter(keyFacility__in=useFac)
         noticeCount=NoticeMain.objects.filter(keyOperateUser__id=self.userId,boolHasRead=False).count()        
 
         return {"user_list":user_list,"main":mainTags,"sub":subTags,"all":useTag,"formatted":formatted,"noticeCount":noticeCount}
@@ -465,7 +465,9 @@ class FormattedTagListView(generics.ListAPIView):
 
     def get_queryset(self):
         facId=self.request.GET.get("facId")
-        return TagInFormatedMemo.objects.filter(keyTagMain__keyFacility__pk=facId)
+        
+        useFac=[NUM_COMMON_TAG_FACILITY,facId]
+        return TagInFormatedMemo.objects.filter(keyTagMain__keyFacility__pk__in=useFac)
 
     
 class MainListView (TagLeadTemplateView):
