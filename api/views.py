@@ -1,3 +1,4 @@
+from django.http.response import JsonResponse
 from api.SendMessageLibrary import (
     ALREADY_HAS_ACCOUNT,
     FORMATTED_INSERT_MEMO, 
@@ -719,7 +720,7 @@ class ReplyInsertView(ReplyThreadView):
             return Response({"error":True,"errorMsg":self.errorMsg,"errorCode":self.errorCode}) 
         self.replyInsert()
 
-        return Response(self.getReplyList())
+        return Response({"resSet":self.getReplyList(),"id":self.memoId})
 
     def replyInsert(self):
         print("memoId",self.memoId)
@@ -803,7 +804,15 @@ class ShowUserFavoriteView(TagLeadTemplateView):
         return Response(self.makeResultSet(results,True))
 
 
+class CallGoogleView(views.APIView):
+    authentication_classes=[OAuth2Authentication,SocialAuthentication]
+    permission_classes = [IsAuthenticated,  ]
 
+    def get(self,request):
+
+        print("Welcome to Google Assistant!")
+        return JsonResponse({"txt":"Welcome to Google Assistant!"})
+ 
 
 
 

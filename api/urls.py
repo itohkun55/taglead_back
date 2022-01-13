@@ -17,7 +17,8 @@ from .views import (
     MemoDeleteView,
     MemoModifyView,
     TestRealView,
-    FirstAccessView
+    FirstAccessView,
+    CallGoogleView
     )
 from .subview import (
     MakeTagByFacilityAdminView,
@@ -64,6 +65,8 @@ urlpatterns = [
     url(r'^showtagadmin', ShowFacilityUserAdminView.as_view()),
     url(r'^maketagadmin', MakeTagByFacilityAdminView.as_view()),
     url(r'^modifytagadmin', ModifyTagByFacilityAdminView.as_view()),
+    #GoogleAssistant接続用
+    url(r'^callgoogle', CallGoogleView.as_view()),
     
     
     
