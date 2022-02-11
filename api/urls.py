@@ -68,8 +68,5 @@ urlpatterns = [
     #GoogleAssistant接続用
     url(r'^callgoogle', CallGoogleView.as_view()),
     
-    
-    
-    
 ]
 

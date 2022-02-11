@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import views
 #from rest_framework import authentication, permissions
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 #from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from datetime import date, datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -805,8 +805,8 @@ class ShowUserFavoriteView(TagLeadTemplateView):
 
 
 class CallGoogleView(views.APIView):
-    authentication_classes=[OAuth2Authentication,SocialAuthentication]
-    permission_classes = [IsAuthenticated,  ]
+    #authentication_classes=[OAuth2Authentication,SocialAuthentication]
+    #permission_classes = [IsAuthenticated,AllowAny  ]
 
     def get(self,request):
 
