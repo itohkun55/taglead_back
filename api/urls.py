@@ -1,4 +1,4 @@
-from django.conf.urls import url, include
+from django.urls import path,include
 from rest_framework import routers
 from .views import (
 #    InitialUserDataView,
@@ -35,38 +35,38 @@ from .subview import (
 router = routers.DefaultRouter()
 
 urlpatterns = [
-    url(r'^ok', TestRealView.as_view()),
+    path('ok', TestRealView.as_view()),
     
-    url('auth/',include('drf_social_oauth2.urls',namespace='drf')), #add this
-    url(r'^', include(router.urls)),
-    #url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^firstend', FirstAccessView.as_view()),
-    url(r'^inituser', InitialDataListView.as_view()),
-    url(r'^newuser', NewUserSetView.as_view()),
-    url(r'^main', MainListView.as_view()),
-    url(r'^tags', TagSearchView.as_view()),
-    url(r'^memoinsert', MemoInsertView.as_view()),
-    url(r'^formattedinsert', FormattedMemoInsertView.as_view()),
-    url(r'^formtaglist', FormattedTagListView.as_view()),
-    url(r'^reply', ReplyThreadView.as_view()),
-    url(r'^repinsert', ReplyInsertView.as_view()),
-    url(r'^setread', SetReadMarkView.as_view()),
-    url(r'^setfav', SetFavoriteMarkView.as_view()),
-    url(r'^getnotice', NoticeMainView.as_view()),
-    url(r'^favorite', ShowUserFavoriteView.as_view()),
-    url(r'^tagconfig', ShowUserTagConfigView.as_view()),
-    #url(r'^maketag', MakeNewTagView.as_view()),
-    url(r'^changeconfig', UpdateUserTagConfigView.as_view()),
-    url(r'^tagreset', ResetUserTagConfigView.as_view()),
-    url(r'^memodelete', MemoDeleteView.as_view()),
-    url(r'^memomodify', MemoModifyView.as_view()),
+    path('auth/',include('drf_social_oauth2.urls',namespace='drf')), #add this
+    path('', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('firstend', FirstAccessView.as_view()),
+    path('inituser', InitialDataListView.as_view()),
+    path('newuser', NewUserSetView.as_view()),
+    path('main', MainListView.as_view()),
+    path('tags', TagSearchView.as_view()),
+    path('memoinsert', MemoInsertView.as_view()),
+    path('formattedinsert', FormattedMemoInsertView.as_view()),
+    path('formtaglist', FormattedTagListView.as_view()),
+    path('reply', ReplyThreadView.as_view()),
+    path('repinsert', ReplyInsertView.as_view()),
+    path('setread', SetReadMarkView.as_view()),
+    path('setfav', SetFavoriteMarkView.as_view()),
+    path('getnotice', NoticeMainView.as_view()),
+    path('favorite', ShowUserFavoriteView.as_view()),
+    path('tagconfig', ShowUserTagConfigView.as_view()),
+    path('maketag', MakeNewTagView.as_view()),
+    path('changeconfig', UpdateUserTagConfigView.as_view()),
+    path('tagreset', ResetUserTagConfigView.as_view()),
+    path('memodelete', MemoDeleteView.as_view()),
+    path('memomodify', MemoModifyView.as_view()),
     
     #タグ追加用管理者のみ使用
-    url(r'^showtagadmin', ShowFacilityUserAdminView.as_view()),
-    url(r'^maketagadmin', MakeTagByFacilityAdminView.as_view()),
-    url(r'^modifytagadmin', ModifyTagByFacilityAdminView.as_view()),
+    path('showtagadmin', ShowFacilityUserAdminView.as_view()),
+    path('maketagadmin', MakeTagByFacilityAdminView.as_view()),
+    path('modifytagadmin', ModifyTagByFacilityAdminView.as_view()),
     #GoogleAssistant接続用
-    url(r'^callgoogle', CallGoogleView.as_view()),
+    path('callgoogle', CallGoogleView.as_view()),
     
 ]
 
