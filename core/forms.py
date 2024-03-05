@@ -14,11 +14,11 @@ class UserInsertForm(ModelForm):
         model=OperateUser
         fields=["keyFacility","keyUser"]
 
-    # def __init__(self):
-    #     super(UserInsertForm,self).__init__(*args,**kwargs)
-    #     users=UserMakePool.objects.filter(boolIsDone=False).values_list("keyUser",flat=True)
+    def __init__(self):
+        super(UserInsertForm,self).__init__(*args,**kwargs)
+        users=UserMakePool.objects.filter(boolIsDone=False).values_list("keyUser",flat=True)
         
-    #     self.fields["keyUser"].queryset=users
+        self.fields["keyUser"].queryset=users
 
 
 class MultiUserChoiceField(models.ModelMultipleChoiceField):
@@ -36,10 +36,10 @@ class MultiUserInsertForm(forms.Form):
         choices=chooseFacility
     )
 
-    # chooseUser=UserMakePool.objects.filter(boolIsDone=False)
-    # newUsers=forms.MultipleChoiceField(
-    #     choices=chooseUser
-    # )
+    #chooseUser=UserMakePool.objects.filter(boolIsDone=False)
+    #newUsers=forms.MultipleChoiceField(
+    #    choices=chooseUser
+    #)
 
     newUser=MultiUserChoiceField(
         queryset=UserMakePool.objects.filter(boolIsDone=False),
